@@ -14,6 +14,9 @@ on:
 defaults:
   run:
     shell: pwsh
+permissions:
+  contents: read
+
 jobs:
   #Checking current release for SBOM
   sbom-check:
@@ -21,6 +24,11 @@ jobs:
       check_status: ${{ steps.check.outputs.status }}
     runs-on: ubuntu-latest
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+      with:
+        egress-policy: audit
+
     - name: Check release for ${{ github.event.client_payload.ReleaseBranchName }}
       id: check
       shell: pwsh
@@ -42,10 +50,17 @@ jobs:
         echo "status=okay" >> $env:GITHUB_OUTPUT
   #Generating SBOM
   building-sbom:
+    permissions:
+      contents: write  # for actions/upload-release-asset to upload release asset
     needs: sbom-check
     if: ${{ needs.sbom-check.outputs.check_status == 'okay' }}
     runs-on: ${{ github.event.client_payload.agentSpec }}
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
       - name: Available image version check for ${{ github.event.client_payload.ReleaseBranchName }}
         run: |
           $imageVersionComponents = $env:ImageVersion.Split('.')
@@ -75,7 +90,7 @@ jobs:
       - name: Compress SBOM file
         run: Compress-Archive sbom.json sbom.json.zip
       #Upload artifact action
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: sbom-${{ github.event.client_payload.agentSpec }}-${{ github.event.client_payload.imageVersion }}
           path: sbom.json.zip
@@ -83,7 +98,7 @@ jobs:
       #Upload release asset action
       #Might be changed to softprops/action-gh-release after additional check
       - name: Upload release asset
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5 # v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
