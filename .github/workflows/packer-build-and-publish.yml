@@ -14,6 +14,11 @@ jobs:
     outputs:
       is_main: ${{ steps.is_main.outputs.value }}
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
       - name: Checkout main branch
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
@@ -35,6 +40,11 @@ jobs:
       body: ${{ steps.get_release_by_commit.outputs.body }}
       tag: ${{ steps.get_release_by_commit.outputs.tag }}
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
       - name: Checkout code
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
@@ -102,6 +112,11 @@ jobs:
           - images/ubuntu/templates/ubuntu-24.04.arm64.pkr.hcl
 
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
@@ -212,6 +227,11 @@ jobs:
     env:
       PROD_RELEASE: ${{ needs.check-main.outputs.is_main == 'true' && !contains(github.ref_name, '-') }}
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
@@ -285,6 +305,11 @@ jobs:
       AWS_REGION: us-east-2
 
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
       - name: Checkout code
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
@@ -304,7 +329,7 @@ jobs:
           done
 
       - name: Authenticate with Dev AWS Account
-        uses: grafana/shared-workflows/actions/aws-auth@main
+        uses: grafana/shared-workflows/actions/aws-auth@fa48192dac470ae356b3f7007229f3ac28c48a25 # main
         with:
           aws-region: "us-east-2"
           role-arn: "arn:aws:iam::${{ env.DEV_ACCOUNT }}:role/github-actions/packer-role"
@@ -338,7 +363,7 @@ jobs:
           done
 
       - name: Authenticate with Prod AWS Account
-        uses: grafana/shared-workflows/actions/aws-auth@main
+        uses: grafana/shared-workflows/actions/aws-auth@fa48192dac470ae356b3f7007229f3ac28c48a25 # main
         with:
           aws-region: "us-east-2"
           role-arn: "arn:aws:iam::${{ env.PROD_ACCOUNT }}:role/github-actions/packer-role"
